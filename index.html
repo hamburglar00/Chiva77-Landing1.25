@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>GERALDINA</title>
+  <title>B300</title>
   <link rel="icon" href="imagenes/favicon.png" type="image/png" />
   <link rel="stylesheet" href="./styles.css" />
 
@@ -11,6 +11,7 @@
   <link rel="preconnect" href="https://connect.facebook.net" crossorigin>
   <link rel="dns-prefetch" href="//connect.facebook.net">
   <link rel="preload" as="image" href="imagenes/fondo.avif" type="image/avif" fetchpriority="high">
+  <!-- ✅ quitado: <link rel="preload" as="image" href="imagenes/fondo.png"> -->
 
   <!-- Meta Pixel Code (con coincidencias avanzadas) -->
   <script>
@@ -32,11 +33,11 @@
 
     window.fbq=window.fbq||function(){};
 
-    fbq("init","TU_PIXEL_ID",{external_id:externalId,em:userEmail||void 0,ph:userPhone||void 0,country:"AR"});
+    fbq("init","880464554785896",{external_id:externalId,em:userEmail||void 0,ph:userPhone||void 0,country:"AR"});
     fbq("track","PageView");
   </script>
   <noscript><img height="1" width="1" style="display:none"
-    src="https://www.facebook.com/tr?id=TU_PIXEL_ID&ev=PageView&noscript=1"/></noscript>
+    src="https://www.facebook.com/tr?id=880464554785896&ev=PageView&noscript=1"/></noscript>
 </head>
 
 <body>
@@ -58,6 +59,8 @@
     </div>
   </div>
 
+  <!-- ✅ quitado: Floating WhatsApp + Burbuja (wa-float completo) -->
+
   <!-- Overlay (se muestra y auto-oculta) -->
   <div id="wa-redirect-overlay" class="wa-redirect-overlay" hidden>
     <div class="wa-redirect-box">
@@ -72,13 +75,22 @@
  ************************************************************/
 const LANDING_CONFIG = {
   BRAND_NAME: "",
+  MODE: "ads", // "ads" | "normal" (se conserva para que todo lo demás quede idéntico)
+  SERVICE_BASE: "/api/get-random-phone", // (ya NO se usa para elegir número)
 
-  // promo al final del mensaje
-  PROMO: { ENABLED: true, LANDING_TAG: "CH2" },
+  // Fallback extremo si todo falla (opcional)
+  EMERGENCY_FALLBACK_NUMBER: "",
+  EMERGENCY_FALLBACK_NAME: "",
+
+  PROMO: { ENABLED: true, LANDING_TAG: "CT1" },
 
   UI: {
+    DEFAULT_INPUT_TEXT: "Hola! Quiero info",
     OVERLAY_TEXT: "Abriendo WhatsApp...",
-    OVERLAY_MAX_VISIBLE_MS: 500
+    OVERLAY_MAX_VISIBLE_MS: 500,
+    AUTO_OPEN_BUBBLE_MS: 5000,
+    // si el número ya está “prewarm”, no se usa; si no, este timeout limita espera
+    CLICK_GET_NUMBER_DEADLINE_MS: 2000
   },
 
   // tracking AFTER click (no bloquea redirect)
@@ -86,21 +98,23 @@ const LANDING_CONFIG = {
 };
 
 /************************************************************
- * ✅ NÚMEROS WHATSAPP ESTÁTICOS (solo dígitos)
- * Reparte parejo (round-robin) con localStorage.
+ * ✅ CAMBIO MÍNIMO: ARRAY FIJO DE NÚMEROS (en vez de API)
+ * Formato: "549..." (solo dígitos)
  ************************************************************/
-const STATIC_WA = {
-  PHONES: [
-    "5493516783675",
-    "5493516768842"
-    // agregá más...
-  ],
-  NAME: "" // opcional (si querés que figure como "name" en el meta)
-};
+const FIXED_PHONES = [
+  "5493516783675",
+  "5493516768842"
+  // agregá más...
+];
 
 /************************************************************
  * ✅ helpers
  ************************************************************/
+function delay(ms){ return new Promise(r => setTimeout(r, ms)); }
+function fetchWithTimeout(url,opt={},ms=3000){
+  const ctrl=new AbortController();const id=setTimeout(()=>ctrl.abort(),ms);
+  return fetch(url,{...opt,signal:ctrl.signal}).finally(()=>clearTimeout(id));
+}
 function normalizePhoneDigits(raw){ return String(raw||"").replace(/\D+/g,"").trim(); }
 function generateUUID(){return"xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g,c=>{const r=Math.random()*16|0,v=c==="x"?r:r&0x3|0x8;return v.toString(16)})}
 function getDeviceType(){const ua=navigator.userAgent;if(/mobile/i.test(ua))return"mobile";if(/tablet|ipad|playbook|silk/i.test(ua))return"tablet";return"desktop";}
@@ -172,6 +186,7 @@ async function detectarGeo(){
  * ✅ Mensaje (promo al final)
  ************************************************************/
 function buildMensaje(promo_code, botName){
+  // si querés SIN nombre, dejá botName sin usar o pasale ""
   const variantes = [
     n => `Hola! Vi este anuncio, me pasás info?`,
     n => `Hola! Vi el anuncio, podrías darme más info?`,
@@ -189,32 +204,35 @@ function buildMensaje(promo_code, botName){
 }
 
 /************************************************************
- * ✅ NÚMERO ESTÁTICO round-robin
+ * ✅ REEMPLAZO: getNumberFromApi() -> getNumberFromFixed()
+ * Mantiene misma forma de retorno: { number, name, meta }
  ************************************************************/
-const RR_KEY = "wa_rr_index_static";
+let __pickedPromise = null;
+const RR_KEY_FIXED = "wa_rr_index_fixed";
 
-function getStaticPool(){
-  return (STATIC_WA.PHONES || [])
+function getNumberFromFixed(){
+  const pool = (FIXED_PHONES || [])
     .map(normalizePhoneDigits)
     .filter(n => /^\d{8,17}$/.test(n));
-}
 
-function pickRoundRobin(arr){
-  let i = parseInt(localStorage.getItem(RR_KEY) || "0", 10);
+  if(!pool.length) throw new Error("No fixed phones configured");
+
+  let i = parseInt(localStorage.getItem(RR_KEY_FIXED) || "0", 10);
   if(!Number.isFinite(i) || i < 0) i = 0;
-  const number = arr[i % arr.length];
-  localStorage.setItem(RR_KEY, String((i + 1) % arr.length));
-  return number;
+
+  const number = pool[i % pool.length];
+  localStorage.setItem(RR_KEY_FIXED, String((i + 1) % pool.length));
+
+  return {
+    number,
+    name: LANDING_CONFIG.BRAND_NAME,
+    meta: { fixed:true, rr_key: RR_KEY_FIXED, pool_size: pool.length }
+  };
 }
 
-function getNumber(){
-  const pool = getStaticPool();
-  if(!pool.length) throw new Error("No static phones configured");
-  return {
-    number: pickRoundRobin(pool),
-    name: STATIC_WA.NAME || LANDING_CONFIG.BRAND_NAME,
-    meta: { static:true, rr_key: RR_KEY, pool_size: pool.length }
-  };
+function prewarmNumber(){
+  if(!__pickedPromise) __pickedPromise = Promise.resolve().then(getNumberFromFixed);
+  return __pickedPromise;
 }
 
 /************************************************************
@@ -226,15 +244,16 @@ async function contactarWhatsApp({ source="main_button", customText=null } = {})
 
   showRedirectOverlay(LANDING_CONFIG.UI.OVERLAY_TEXT);
 
-  // 1) número (estático)
+  // 1) número (usa prewarm) -> ahora viene del array fijo
   let picked;
   try{
-    picked = getNumber();
+    picked = await (__pickedPromise || prewarmNumber());
   }catch(e){
-    // si no hay números, cortamos
-    hideRedirectOverlay();
-    window.__waInFlight = false;
-    return;
+    picked = {
+      number: LANDING_CONFIG.EMERGENCY_FALLBACK_NUMBER,
+      name: LANDING_CONFIG.EMERGENCY_FALLBACK_NAME,
+      meta: { emergency:true, error:String(e?.message||e) }
+    };
   }
 
   const cleanPhone = normalizePhoneDigits(picked?.number);
@@ -281,6 +300,7 @@ async function contactarWhatsApp({ source="main_button", customText=null } = {})
       promo_code,
       source,
       brand: LANDING_CONFIG.BRAND_NAME,
+      mode: LANDING_CONFIG.MODE,
       geo_city: geo.city || "",
       geo_region: geo.region || "",
       geo_country: geo.country || "",
@@ -305,6 +325,9 @@ async function contactarWhatsApp({ source="main_button", customText=null } = {})
  * ✅ UI wiring (solo botón principal)
  ************************************************************/
 document.addEventListener("DOMContentLoaded",()=>{
+  // prewarm apenas carga (ahora toma del array)
+  prewarmNumber();
+
   const btn = document.getElementById("whatsappButton");
   if(btn){
     btn.addEventListener("click",(e)=>{
