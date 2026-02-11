@@ -11,7 +11,6 @@
   <link rel="preconnect" href="https://connect.facebook.net" crossorigin>
   <link rel="dns-prefetch" href="//connect.facebook.net">
   <link rel="preload" as="image" href="imagenes/fondo.avif" type="image/avif" fetchpriority="high">
-  <!-- ✅ quitado: <link rel="preload" as="image" href="imagenes/fondo.png"> -->
 
   <!-- Meta Pixel Code (con coincidencias avanzadas) -->
   <script>
@@ -59,8 +58,6 @@
     </div>
   </div>
 
-  <!-- ✅ quitado: Floating WhatsApp + Burbuja (wa-float completo) -->
-
   <!-- Overlay (se muestra y auto-oculta) -->
   <div id="wa-redirect-overlay" class="wa-redirect-overlay" hidden>
     <div class="wa-redirect-box">
@@ -75,12 +72,7 @@
  ************************************************************/
 const LANDING_CONFIG = {
   BRAND_NAME: "",
-  MODE: "ads", // "ads" | "normal" (se conserva para que todo lo demás quede idéntico)
-  SERVICE_BASE: "/api/get-random-phone", // (ya NO se usa para elegir número)
-
-  // Fallback extremo si todo falla (opcional)
-  EMERGENCY_FALLBACK_NUMBER: "",
-  EMERGENCY_FALLBACK_NAME: "",
+  MODE: "ads", // se mantiene para que todo lo demás quede igual
 
   PROMO: { ENABLED: true, LANDING_TAG: "CT1" },
 
@@ -88,18 +80,14 @@ const LANDING_CONFIG = {
     DEFAULT_INPUT_TEXT: "Hola! Quiero info",
     OVERLAY_TEXT: "Abriendo WhatsApp...",
     OVERLAY_MAX_VISIBLE_MS: 500,
-    AUTO_OPEN_BUBBLE_MS: 5000,
-    // si el número ya está “prewarm”, no se usa; si no, este timeout limita espera
     CLICK_GET_NUMBER_DEADLINE_MS: 2000
   },
 
-  // tracking AFTER click (no bloquea redirect)
   GEO: { ENABLED: true, PROVIDER_URL: "https://ipapi.co/json/", TIMEOUT_MS: 900 }
 };
 
 /************************************************************
- * ✅ CAMBIO MÍNIMO: ARRAY FIJO DE NÚMEROS (en vez de API)
- * Formato: "549..." (solo dígitos)
+ * ✅ NÚMEROS FIJOS (reemplaza API get-random-phone)
  ************************************************************/
 const FIXED_PHONES = [
   "5493516783675",
@@ -110,11 +98,6 @@ const FIXED_PHONES = [
 /************************************************************
  * ✅ helpers
  ************************************************************/
-function delay(ms){ return new Promise(r => setTimeout(r, ms)); }
-function fetchWithTimeout(url,opt={},ms=3000){
-  const ctrl=new AbortController();const id=setTimeout(()=>ctrl.abort(),ms);
-  return fetch(url,{...opt,signal:ctrl.signal}).finally(()=>clearTimeout(id));
-}
 function normalizePhoneDigits(raw){ return String(raw||"").replace(/\D+/g,"").trim(); }
 function generateUUID(){return"xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g,c=>{const r=Math.random()*16|0,v=c==="x"?r:r&0x3|0x8;return v.toString(16)})}
 function getDeviceType(){const ua=navigator.userAgent;if(/mobile/i.test(ua))return"mobile";if(/tablet|ipad|playbook|silk/i.test(ua))return"tablet";return"desktop";}
@@ -164,7 +147,7 @@ function hideRedirectOverlay(){
 }
 
 /************************************************************
- * ✅ GEO (no bloquea)
+ * ✅ GEO (best-effort)
  ************************************************************/
 async function detectarGeo(){
   if(!LANDING_CONFIG.GEO?.ENABLED) return { city:null, region:null, country:null };
@@ -186,7 +169,6 @@ async function detectarGeo(){
  * ✅ Mensaje (promo al final)
  ************************************************************/
 function buildMensaje(promo_code, botName){
-  // si querés SIN nombre, dejá botName sin usar o pasale ""
   const variantes = [
     n => `Hola! Vi este anuncio, me pasás info?`,
     n => `Hola! Vi el anuncio, podrías darme más info?`,
@@ -204,8 +186,7 @@ function buildMensaje(promo_code, botName){
 }
 
 /************************************************************
- * ✅ REEMPLAZO: getNumberFromApi() -> getNumberFromFixed()
- * Mantiene misma forma de retorno: { number, name, meta }
+ * ✅ NÚMERO DESDE ARRAY (PREWARM, round-robin)
  ************************************************************/
 let __pickedPromise = null;
 const RR_KEY_FIXED = "wa_rr_index_fixed";
@@ -223,11 +204,7 @@ function getNumberFromFixed(){
   const number = pool[i % pool.length];
   localStorage.setItem(RR_KEY_FIXED, String((i + 1) % pool.length));
 
-  return {
-    number,
-    name: LANDING_CONFIG.BRAND_NAME,
-    meta: { fixed:true, rr_key: RR_KEY_FIXED, pool_size: pool.length }
-  };
+  return { number, name: LANDING_CONFIG.BRAND_NAME, meta: { fixed:true } };
 }
 
 function prewarmNumber(){
@@ -236,7 +213,32 @@ function prewarmNumber(){
 }
 
 /************************************************************
- * ✅ CLICK: redirect ASAP, tracking after (no await)
+ * ✅ Envío a sheet (ULTRA confiable) con sendBeacon
+ ************************************************************/
+function sendToSheet(payload){
+  try{
+    const body = JSON.stringify(payload);
+
+    if (navigator.sendBeacon){
+      const ok = navigator.sendBeacon(
+        "/api/xz3v2q",
+        new Blob([body], { type: "application/json" })
+      );
+      if (ok) return;
+    }
+
+    fetch("/api/xz3v2q",{
+      method:"POST",
+      headers:{"Content-Type":"application/json"},
+      body,
+      keepalive:true,
+      cache:"no-store"
+    }).catch(()=>{});
+  }catch{}
+}
+
+/************************************************************
+ * ✅ CLICK: redirect ASAP, tracking after (NO BLOQUEA)
  ************************************************************/
 async function contactarWhatsApp({ source="main_button", customText=null } = {}){
   if (window.__waInFlight) return;
@@ -244,16 +246,14 @@ async function contactarWhatsApp({ source="main_button", customText=null } = {})
 
   showRedirectOverlay(LANDING_CONFIG.UI.OVERLAY_TEXT);
 
-  // 1) número (usa prewarm) -> ahora viene del array fijo
+  // 1) número (usa prewarm)
   let picked;
   try{
     picked = await (__pickedPromise || prewarmNumber());
   }catch(e){
-    picked = {
-      number: LANDING_CONFIG.EMERGENCY_FALLBACK_NUMBER,
-      name: LANDING_CONFIG.EMERGENCY_FALLBACK_NAME,
-      meta: { emergency:true, error:String(e?.message||e) }
-    };
+    hideRedirectOverlay();
+    window.__waInFlight = false;
+    return;
   }
 
   const cleanPhone = normalizePhoneDigits(picked?.number);
@@ -282,42 +282,46 @@ async function contactarWhatsApp({ source="main_button", customText=null } = {})
     }
   }catch{}
 
-  // 3) Tracking AFTER (no await)
+  // 3) ✅ Mandar al sheet INMEDIATO (sin esperar GEO)
+  const basePayload = {
+    event_name:"Contact",
+    event_id,
+    external_id: getOrCreateExternalId(),
+    event_source_url: location.href,
+    fbp: getFbp(),
+    fbc: getFbc(),
+    email:getQueryParam("email"),
+    phone:getQueryParam("phone"),
+    utm_campaign:getQueryParam("utm_campaign"),
+    telefono_asignado: cleanPhone,
+    device_type: getDeviceType(),
+    promo_code,
+    source,
+    brand: LANDING_CONFIG.BRAND_NAME,
+    mode: LANDING_CONFIG.MODE,
+    geo_city: "",
+    geo_region: "",
+    geo_country: "",
+    api_meta: picked?.meta || null
+  };
+
+  sendToSheet(basePayload);
+
+  // 4) GEO best-effort: si llega, manda update opcional (no bloquea)
   (async ()=>{
     const geo = await detectarGeo();
-    const payload = {
-      event_name:"Contact",
-      event_id,
-      external_id: getOrCreateExternalId(),
-      event_source_url: location.href,
-      fbp: getFbp(),
-      fbc: getFbc(),
-      email:getQueryParam("email"),
-      phone:getQueryParam("phone"),
-      utm_campaign:getQueryParam("utm_campaign"),
-      telefono_asignado: cleanPhone,
-      device_type: getDeviceType(),
-      promo_code,
-      source,
-      brand: LANDING_CONFIG.BRAND_NAME,
-      mode: LANDING_CONFIG.MODE,
-      geo_city: geo.city || "",
-      geo_region: geo.region || "",
-      geo_country: geo.country || "",
-      api_meta: picked?.meta || null
-    };
-
-    try{
-      fetch("/api/xz3v2q",{
-        method:"POST",
-        headers:{"Content-Type":"application/json"},
-        body:JSON.stringify(payload),
-        keepalive:true
+    if(geo?.city || geo?.region || geo?.country){
+      sendToSheet({
+        ...basePayload,
+        geo_city: geo.city || "",
+        geo_region: geo.region || "",
+        geo_country: geo.country || "",
+        geo_update: true
       });
-    }catch{}
+    }
   })();
 
-  // 4) ✅ REDIRECT INSTANT
+  // 5) ✅ REDIRECT INSTANT
   window.location.assign(`https://wa.me/${cleanPhone}?text=${encodeURIComponent(mensaje)}`);
 }
 
@@ -325,7 +329,6 @@ async function contactarWhatsApp({ source="main_button", customText=null } = {})
  * ✅ UI wiring (solo botón principal)
  ************************************************************/
 document.addEventListener("DOMContentLoaded",()=>{
-  // prewarm apenas carga (ahora toma del array)
   prewarmNumber();
 
   const btn = document.getElementById("whatsappButton");
@@ -336,7 +339,6 @@ document.addEventListener("DOMContentLoaded",()=>{
     });
   }
 
-  // reset al volver de WhatsApp
   function resetAfterReturn(){
     hideRedirectOverlay();
     window.__waInFlight=false;
