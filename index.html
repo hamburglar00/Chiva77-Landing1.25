@@ -78,17 +78,18 @@ Ganás y cobrás a cualquier hora
  * ✅ CONFIG
  * - SIN API de números
  * - Números fijos en el HTML
- * - Mantiene promo + variantes + pixel Contact (igual)
+ * - ✅ PEGA AL SHEET por /api/xz3v2q
  *************************************************************/
 const LANDING_CONFIG = {
   PROMO: { ENABLED: true, LANDING_TAG: "CH1" },
 
-  // ✅ TU ARRAY FIJO (editás acá)
-  // Formato: "549..." (solo dígitos)
+  // ✅ endpoint de tu proyecto (api/xz3v2q.js)
+  SHEET_ENDPOINT: "/api/xz3v2q",
+
+  // ✅ TU ARRAY FIJO
   PHONES: [
     "5493516783675",
     "5493516768842"
-    // agregá más...
   ]
 };
 
@@ -105,7 +106,7 @@ function generateUUID(){
 }
 
 /*************************************************************
- * ✅ Round-robin local (reparte parejo)
+ * ✅ Round-robin local
  *************************************************************/
 const RR_KEY="wa_rr_index";
 
@@ -131,7 +132,21 @@ function getNumber(){
 }
 
 /*************************************************************
- * Variantes mensaje (igual que tenías)
+ * ✅ Envío al sheet (NO bloquea redirect)
+ *************************************************************/
+function sendToSheet(payload){
+  try{
+    fetch(LANDING_CONFIG.SHEET_ENDPOINT, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+      keepalive: true
+    });
+  }catch{}
+}
+
+/*************************************************************
+ * Variantes mensaje
  *************************************************************/
 function buildMensaje(promo_code){
   const variantes=[
@@ -147,9 +162,7 @@ function buildMensaje(promo_code){
 }
 
 /*************************************************************
- * Click (mantiene pixel Contact)
- * Nota: acá NO llamamos ninguna API de números.
- * (La “api de sheet” queda para tu backend/bot como ya lo manejás)
+ * Click (pixel + sheet + redirect)
  *************************************************************/
 function contactarWhatsApp(){
   if(window.__waInFlight) return;
@@ -166,7 +179,21 @@ function contactarWhatsApp(){
   const mensaje=buildMensaje(promo_code);
   const event_id=generateUUID();
 
-  try{fbq("track","Contact",{content_name:"Botón WhatsApp"},{eventID:event_id});}catch{}
+  // Pixel Contact
+  try{ fbq("track","Contact",{content_name:"Botón WhatsApp"},{eventID:event_id}); }catch{}
+
+  // ✅ Sheet: registrá el click/contacto (no espera respuesta)
+  sendToSheet({
+    event_name: "Contact",
+    event_id,
+    external_id: externalId,
+    event_source_url: location.href,
+    email: params.get("email") || "",
+    phone: params.get("phone") || "",
+    utm_campaign: params.get("utm_campaign") || "",
+    telefono_asignado: phone,
+    promo_code
+  });
 
   const url=`https://wa.me/${phone}?text=${encodeURIComponent(mensaje)}`;
   setTimeout(()=>window.location.assign(url),70);
