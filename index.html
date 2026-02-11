@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>GERALDINA</title>
+
+<link rel="icon" href="imagenes/favicon.png" type="image/png" />
+<link rel="stylesheet" href="./styles.css" />
+
+<!-- Preconnect Meta -->
+<link rel="preconnect" href="https://connect.facebook.net" crossorigin>
+<link rel="dns-prefetch" href="//connect.facebook.net">
+<link rel="preconnect" href="https://www.facebook.com" crossorigin>
+<link rel="dns-prefetch" href="//www.facebook.com">
+
+<!-- Solo AVIF -->
+<link rel="preload" as="image" href="imagenes/fondo.avif" type="image/avif" fetchpriority="high">
+
+<script>
+function normEmail(v){return(v||"").trim().toLowerCase();}
+function normPhone(v){let p=(v||"").replace(/\D+/g,"");if(p&&p.length===10)p="54"+p;return p;}
+function safeUUID(){return crypto?.randomUUID?.()||"xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g,c=>{const r=Math.random()*16|0,v=c==="x"?r:r&0x3|0x8;return v.toString(16)})}
+function getOrCreateExternalId(){let id=localStorage.getItem("external_id");if(!id){id=safeUUID();localStorage.setItem("external_id",id);}return id;}
+
+const params=new URLSearchParams(location.search);
+const userEmail=normEmail(params.get("email"));
+const userPhone=normPhone(params.get("phone"));
+const externalId=getOrCreateExternalId();
+
+/* Meta Pixel */
+!function(f,b,e,v,n,t,s){if(f.fbq)return;n=f.fbq=function(){n.callMethod?
+n.callMethod.apply(n,arguments):n.queue.push(arguments)};if(!f._fbq)f._fbq=n;
+n.push=n;n.loaded=!0;n.version='2.0';n.queue=[];t=b.createElement(e);t.async=!0;
+t.src=v;s=b.getElementsByTagName(e)[0];s.parentNode.insertBefore(t,s)}
+(window,document,'script','https://connect.facebook.net/en_US/fbevents.js');
+
+fbq("init","1849164609062818",{external_id:externalId,em:userEmail||void 0,ph:userPhone||void 0,country:"AR"});
+fbq("track","PageView");
+</script>
+
+<noscript>
+<img height="1" width="1" style="display:none"
+src="https://www.facebook.com/tr?id=1849164609062818&ev=PageView&noscript=1"/>
+</noscript>
+</head>
+
+<body>
+<div class="container background-image">
+<div class="overlay"></div>
+<div class="content">
+
+<img src="imagenes/logo.png" class="logo" alt="Logo" width="200" height="200" decoding="async" fetchpriority="high" />
+
+<p class="title">
+Envianos un WhatsApp<br />para crear tu cuenta
+</p>
+
+<a class="whatsapp-button" id="whatsappButton" href="#" rel="noopener noreferrer">
+<span>¡Contactar ya!</span>
+<img src="imagenes/whatsapp.png" alt="whatsapp" class="whatsapp-icon"
+width="24" height="24" decoding="async" loading="lazy" />
+</a>
+
+<p class="subtitle">
+Mínimo de carga: 1.000<br />
+Sin Límite de retiro<br />
+Ganás y cobrás a cualquier hora
+</p>
+
+<p class="description">-RED OFICIAL-</p>
+
+</div>
+</div>
+
+<script>
+/*************************************************************
+ * ✅ CONFIG
+ * - SIN API de números
+ * - Números fijos en el HTML
+ * - Mantiene promo + variantes + pixel Contact (igual)
+ *************************************************************/
+const LANDING_CONFIG = {
+  PROMO: { ENABLED: true, LANDING_TAG: "CH1" },
+
+  // ✅ TU ARRAY FIJO (editás acá)
+  // Formato: "549..." (solo dígitos)
+  PHONES: [
+    "5493516783675",
+    "5493516768842"
+    // agregá más...
+  ]
+};
+
+function normalizePhoneDigits(raw){
+  return String(raw||"").replace(/\D+/g,"").trim();
+}
+
+function generateUUID(){
+  return crypto.randomUUID ? crypto.randomUUID() :
+  "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g,c=>{
+    const r=Math.random()*16|0,v=c==="x"?r:r&0x3|0x8;
+    return v.toString(16);
+  });
+}
+
+/*************************************************************
+ * ✅ Round-robin local (reparte parejo)
+ *************************************************************/
+const RR_KEY="wa_rr_index";
+
+function getCleanPhones(){
+  const clean = (LANDING_CONFIG.PHONES || [])
+    .map(normalizePhoneDigits)
+    .filter(n => /^\d{8,17}$/.test(n));
+  return clean;
+}
+
+function pickRoundRobin(arr){
+  let i=parseInt(localStorage.getItem(RR_KEY)||"0",10);
+  if(!Number.isFinite(i) || i < 0) i = 0;
+  const n=arr[i%arr.length];
+  localStorage.setItem(RR_KEY,String((i+1)%arr.length));
+  return n;
+}
+
+function getNumber(){
+  const pool = getCleanPhones();
+  if(!pool.length) throw new Error("No phones configured");
+  return pickRoundRobin(pool);
+}
+
+/*************************************************************
+ * Variantes mensaje (igual que tenías)
+ *************************************************************/
+function buildMensaje(promo_code){
+  const variantes=[
+    "Hola! Quiero info",
+    "Buenas! Me pasás información?",
+    "Hola! Me interesa, me contás más?",
+    "Hola! Cómo es para empezar?",
+    "Buenas! Me explicás cómo funciona?",
+    "Hola! Vi el anuncio y quiero info"
+  ];
+  const base=variantes[Math.floor(Math.random()*variantes.length)];
+  return promo_code?`${base} ${promo_code}`:base;
+}
+
+/*************************************************************
+ * Click (mantiene pixel Contact)
+ * Nota: acá NO llamamos ninguna API de números.
+ * (La “api de sheet” queda para tu backend/bot como ya lo manejás)
+ *************************************************************/
+function contactarWhatsApp(){
+  if(window.__waInFlight) return;
+  window.__waInFlight=true;
+
+  let phone;
+  try{ phone = getNumber(); }
+  catch{ window.__waInFlight=false; return; }
+
+  const promo_code=LANDING_CONFIG.PROMO.ENABLED
+    ?`${LANDING_CONFIG.PROMO.LANDING_TAG}-${generateUUID().slice(0,8)}`
+    :"";
+
+  const mensaje=buildMensaje(promo_code);
+  const event_id=generateUUID();
+
+  try{fbq("track","Contact",{content_name:"Botón WhatsApp"},{eventID:event_id});}catch{}
+
+  const url=`https://wa.me/${phone}?text=${encodeURIComponent(mensaje)}`;
+  setTimeout(()=>window.location.assign(url),70);
+}
+
+document.addEventListener("DOMContentLoaded",()=>{
+  document.getElementById("whatsappButton")
+    .addEventListener("click",e=>{
+      e.preventDefault();
+      contactarWhatsApp();
+    });
+});
+</script>
+
+</body>
+</html>
