@@ -114,7 +114,7 @@ body{
     0 10px 22px rgba(0,0,0,.45);
 
   animation:heartbeat 2s infinite ease-in-out;
-  transition:transform .16s ease, filter .16s ease;
+  transition:transform .16s ease;
   will-change:transform;
   -webkit-tap-highlight-color:transparent;
   user-select:none;
