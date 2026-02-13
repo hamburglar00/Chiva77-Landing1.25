@@ -58,8 +58,9 @@ export default async function handler(req, res) {
       promo_code
     } = req.body || {};
 
-    if (!event_id && !phone && !email) {
-      return res.status(400).json({ error: 'Faltan datos mínimos (event_id / phone / email).' });
+    // Validación mínima: al menos event_id (siempre se genera en el front)
+    if (!event_id && !external_id && !phone && !email) {
+      return res.status(400).json({ error: 'Faltan datos mínimos.' });
     }
 
     const sheetPayload = {
