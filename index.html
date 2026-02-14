@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>GERALDINA</title>
+  <title>B300</title>
   <link rel="icon" href="imagenes/favicon.png" type="image/png" />
 
   <!-- Critical CSS: primer pintado sin esperar styles.css -->
@@ -85,7 +85,7 @@
 const LANDING_CONFIG = {
   BRAND_NAME: "",
   MODE: "ads",
-  PROMO: { ENABLED: true, LANDING_TAG: "CH125" },
+  PROMO: { ENABLED: true, LANDING_TAG: "CT1" },
   GEO: { ENABLED: true, PROVIDER_URL: "https://ipapi.co/json/", TIMEOUT_MS: 900 }
 };
 
@@ -168,7 +168,7 @@ function buildMensaje(promo_code, botName){
 }
 
 /************************************************************
- * Número desde array (round-robin)
+ * Número desde array (aleatorio)
  ************************************************************/
 let __pickedResult = null;
 
@@ -178,11 +178,7 @@ function getNumberFromFixed(){
     .filter(n => /^\d{8,17}$/.test(n));
   if(!pool.length) return null;
 
-  const key = "wa_rr_index_fixed";
-  let i = parseInt(localStorage.getItem(key) || "0", 10);
-  if(!Number.isFinite(i) || i < 0) i = 0;
-  const number = pool[i % pool.length];
-  localStorage.setItem(key, String((i + 1) % pool.length));
+  const number = pool[Math.floor(Math.random() * pool.length)];
   return { number, name: LANDING_CONFIG.BRAND_NAME, meta: { fixed: true } };
 }
 
