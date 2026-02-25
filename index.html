@@ -1,290 +1,364 @@
 <!DOCTYPE html>
 <html lang="es">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>B300</title>
-  <link rel="icon" href="imagenes/favicon.png" type="image/png" />
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>GERALDINA</title>
+    <link rel="icon" href="favicon.ico" type="image/x-icon" />
+    <link rel="preload" as="image" href="imagenes/logo.png" type="image/png" fetchpriority="high">
 
-  <!-- Critical CSS: primer pintado sin esperar styles.css -->
-  <style>
-    *{margin:0;padding:0;box-sizing:border-box;} html,body{height:100%;}
-    body{font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;color:#fff;background:#000;-webkit-font-smoothing:antialiased;}
-    .background-image{background-color:#000;background-image:url("imagenes/fondo.avif");background-position:center;background-size:cover;background-repeat:no-repeat;width:100%;min-height:100vh;min-height:100svh;display:flex;align-items:center;justify-content:center;position:relative;}
-    .overlay{position:absolute;inset:0;background:rgba(0,0,0,.7);}
-    .content{position:relative;text-align:center;display:flex;flex-direction:column;align-items:center;padding:18px 14px;width:min(92vw,520px);}
-    .logo{width:205px;height:205px;object-fit:contain;display:block;}
-    .title{margin:10px 0 15px;font-size:20px;font-weight:800;line-height:1.15;text-wrap:balance;}
-    .subtitle{font-size:17px;margin-top:34px;line-height:1.25;}
-    .description{color:gold;font-size:14px;font-weight:800;margin:28px 0 44px;}
-    .whatsapp-button{position:relative;overflow:hidden;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:10px;background:linear-gradient(145deg,#155c3d,#0e2d1e);color:#fff;font-size:17px;font-weight:900;padding:12px 16px;border:3px solid #fff;border-radius:10px;text-decoration:none;margin-top:22px;min-width:220px;box-shadow:0 0 18px 6px rgba(255,215,0,.70),0 10px 22px rgba(0,0,0,.45);animation:heartbeat 2s infinite ease-in-out;transition:transform .16s ease;will-change:transform;-webkit-tap-highlight-color:transparent;user-select:none;}
-    .whatsapp-button:active{transform:scale(.97);}
-    .whatsapp-button::before{content:"";position:absolute;inset:0;width:50%;background:linear-gradient(120deg,transparent,rgba(255,255,255,.55),transparent);transform:translateX(-150%) skewX(-25deg);animation:shineX 3.8s infinite;pointer-events:none;}
-    .whatsapp-icon{width:30px;height:30px;display:block;}
-    @keyframes shineX{from{transform:translateX(-150%) skewX(-25deg);}to{transform:translateX(300%) skewX(-25deg);}}
-    @keyframes heartbeat{0%,100%{transform:scale(1);}50%{transform:scale(1.03);}}
-  </style>
-  <!-- CSS completo (no bloquea primer pintado) -->
-  <link rel="stylesheet" href="./styles.css" media="print" onload="this.media='all'">
-  <noscript><link rel="stylesheet" href="./styles.css"></noscript>
+    <!-- Critical CSS -->
+    <style>
+      *{margin:0;padding:0;box-sizing:border-box;} html,body{height:100%;}
+      body{font-family:Arial,Helvetica,sans-serif;color:#fff;background:#000;-webkit-font-smoothing:antialiased;}
+      .background-image{background-color:#000;background-size:cover;background-position:center;background-repeat:no-repeat;width:100%;min-height:100vh;min-height:100svh;display:flex;align-items:center;justify-content:center;padding-bottom:15vh;position:relative;}
+      .overlay{display:none;}
+      .content{position:relative;text-align:center;display:flex;flex-direction:column;align-items:center;padding:18px 14px;width:min(92vw,520px);}
+      .logo{width:250px;height:250px;object-fit:contain;display:block;}
+      .title{margin:10px 0 15px;font-size:22px;font-weight:800;line-height:1.15;text-wrap:balance;}
+      .subtitle{font-size:19px;margin-top:40px;line-height:1.25;}
+      .description{color:gold;font-size:14px;font-weight:800;margin:35px 0 50px;}
+      .whatsapp-button{position:relative;overflow:hidden;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:10px;background:linear-gradient(145deg,#155c3d,#0e2d1e);color:#fff;font-size:28px;font-weight:900;padding:20px;border:3px solid #fff;border-radius:10px;text-decoration:none;margin-top:25px;min-width:250px;box-shadow:0 0 30px 8px rgba(255,215,0,.70),0 10px 22px rgba(0,0,0,.45);animation:heartbeat 2s infinite ease-in-out;transition:transform .16s ease;will-change:transform;-webkit-tap-highlight-color:transparent;user-select:none;}
+      .whatsapp-button:active{transform:scale(.97);}
+      .whatsapp-button::before{content:"";position:absolute;inset:0;width:50%;background:linear-gradient(120deg,transparent,rgba(255,255,255,.55),transparent);transform:translateX(-150%) skewX(-25deg);animation:shineX 3.8s infinite;pointer-events:none;}
+      .whatsapp-icon{width:30px;height:30px;display:block;}
+      @keyframes shineX{from{transform:translateX(-150%) skewX(-25deg);}to{transform:translateX(300%) skewX(-25deg);}}
+      @keyframes heartbeat{0%,100%{transform:scale(1);}50%{transform:scale(1.03);}}
+    </style>
 
-  <!-- Performance -->
-  <link rel="preconnect" href="https://connect.facebook.net" crossorigin>
-  <link rel="dns-prefetch" href="//connect.facebook.net">
-  <link rel="preload" as="image" href="imagenes/fondo.avif" type="image/avif" fetchpriority="high">
+    <link rel="stylesheet" href="./styles.css" media="print" onload="this.media='all'">
+    <noscript><link rel="stylesheet" href="./styles.css"></noscript>
 
-  <!-- Meta Pixel: stub en head (no bloquea), init/track después del primer pintado -->
-  <script>
-    (function(){
-      window.fbq=function(){ (window.fbq.queue=window.fbq.queue||[]).push(arguments); };
-      window.fbq.queue=[];
-      setTimeout(function(){
-        function normEmail(v){return (v||"").trim().toLowerCase();}
-        function normPhone(v){var p=(v||"").replace(/\D+/g,"");if(p&&p.length===10)p="54"+p;return p;}
-        function safeUUID(){return window.crypto&&window.crypto.randomUUID?window.crypto.randomUUID():"xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g,function(c){var r=Math.random()*16|0,v=c==="x"?r:r&0x3|0x8;return v.toString(16);});}
-        function getOrCreateExternalId(){var id=localStorage.getItem("external_id");if(!id){id=safeUUID();localStorage.setItem("external_id",id);}return id;}
+    <link rel="preconnect" href="https://connect.facebook.net" crossorigin />
+    <link rel="dns-prefetch" href="//connect.facebook.net" />
+
+    <!-- Preload del fondo del día -->
+    <script>
+      (function(){
+        var FONDOS = [
+          "imagenes/fondo1.avif","imagenes/fondo2.avif","imagenes/fondo3.avif",
+          "imagenes/fondo4.avif","imagenes/fondo5.avif","imagenes/fondo6.avif","imagenes/fondo7.avif"
+        ];
+        var DIAS_POR_FONDO = 2;
+        var daysSinceEpoch = Math.floor(Date.now() / 86400000);
+        var idx = Math.floor(daysSinceEpoch / DIAS_POR_FONDO) % FONDOS.length;
+        window.__fondoActual = FONDOS[idx];
+        var link = document.createElement("link");
+        link.rel = "preload";
+        link.as = "image";
+        link.href = window.__fondoActual;
+        link.type = "image/avif";
+        link.fetchPriority = "high";
+        document.head.appendChild(link);
+      })();
+    </script>
+
+    <!-- Meta Pixel (SNIPPET OFICIAL) -->
+    <script>
+      !(function(f,b,e,v,n,t,s){
+        if(f.fbq) return;
+        n=f.fbq=function(){ n.callMethod ? n.callMethod.apply(n,arguments) : n.queue.push(arguments) };
+        if(!f._fbq) f._fbq=n;
+        n.push=n; n.loaded=!0; n.version='2.0'; n.queue=[];
+        t=b.createElement(e); t.async=!0; t.src=v;
+        s=b.getElementsByTagName(e)[0]; s.parentNode.insertBefore(t,s);
+      })(window, document, 'script', 'https://connect.facebook.net/en_US/fbevents.js');
+    </script>
+
+    <!-- Init Pixel + PageView -->
+    <script>
+      (function(){
+        function normEmail(v){ return (v||"").trim().toLowerCase(); }
+        function normPhone(v){
+          var d=(v||"").replace(/\D+/g,"");
+          if(!d) return "";
+          if(d.startsWith("54")) return d; // ya tiene país
+          d = d.replace(/^0+/, "").replace(/^15/, "");
+          return "549"+d;
+        }
+        function safeUUID(){
+          return (window.crypto && window.crypto.randomUUID)
+            ? window.crypto.randomUUID()
+            : "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g,function(c){
+                var r=Math.random()*16|0,v=c==="x"?r:r&0x3|0x8;return v.toString(16);
+              });
+        }
+        function getOrCreateExternalId(){
+          var id=localStorage.getItem("external_id");
+          if(!id){ id=safeUUID(); localStorage.setItem("external_id",id); }
+          return id;
+        }
+
         var params=new URLSearchParams(location.search);
-        window.userEmail=normEmail(params.get("em")||params.get("email")||"");
-        window.userPhone=normPhone(params.get("ph")||params.get("phone")||"");
-        window.userFn=(params.get("fn")||"").trim()||undefined;
-        window.userLn=(params.get("ln")||"").trim()||undefined;
-        window.externalId=getOrCreateExternalId();
-        var t=document.createElement("script");t.async=true;t.src="https://connect.facebook.net/en_US/fbevents.js";(document.head||document.documentElement).appendChild(t);
-        fbq("init","880464554785896",{external_id:window.externalId,em:window.userEmail||void 0,ph:window.userPhone||void 0,fn:window.userFn,ln:window.userLn,country:"AR"});
+        window.userEmail = normEmail(params.get("em")||params.get("email")||localStorage.getItem("em")||"");
+        window.userPhone = normPhone(params.get("ph")||params.get("phone")||localStorage.getItem("ph")||"");
+        window.userFn = (params.get("fn")||"").trim() || undefined;
+        window.userLn = (params.get("ln")||"").trim() || undefined;
+        window.externalId = getOrCreateExternalId();
+
+        fbq("init","TU_PIXEL_ID",{
+          external_id: window.externalId,
+          em: window.userEmail || undefined,
+          ph: window.userPhone || undefined,
+          fn: window.userFn,
+          ln: window.userLn,
+          country: "AR"
+        });
+
         fbq("track","PageView");
-      },0);
-    })();
-  </script>
-  <noscript><img height="1" width="1" style="display:none"
-    src="https://www.facebook.com/tr?id=880464554785896&ev=PageView&noscript=1"/></noscript>
-</head>
+      })();
+    </script>
 
-<body>
-  <div class="container background-image">
-    <div class="overlay"></div>
-    <div class="content">
-      <img src="imagenes/logo.png" class="logo" alt="Logo" decoding="async" fetchpriority="high" />
+    <noscript>
+      <img height="1" width="1" style="display:none"
+        src="https://www.facebook.com/tr?id=TU_PIXEL_ID&ev=PageView&noscript=1"/>
+    </noscript>
+  </head>
 
-      <p class="title">Envianos un WhatsApp<br />para crear tu cuenta</p>
+  <body>
+    <div class="container background-image">
+      <div class="overlay"></div>
+      <div class="content">
+        <img src="imagenes/logo.png" class="logo" width="240" height="120"
+             alt="GOLDEN" decoding="async" fetchpriority="high" />
 
-      <a class="whatsapp-button" id="whatsappButton" href="#" rel="noopener noreferrer" aria-label="Crear usuario por WhatsApp">
-        <span>¡Contactar ya!</span>
-        <img src="imagenes/whatsapp.png" alt="whatsapp" class="whatsapp-icon"
-             width="24" height="24" decoding="async" loading="lazy" />
-      </a>
+        <p class="title">Envianos un WhatsApp<br />para crear tu cuenta</p>
 
-      <p class="subtitle">Mínimo de carga: 1.000<br />Sin Límite de retiro<br />Ganás y cobrás a cualquier hora</p>
-      <p class="description">-RED OFICIAL-</p>
+        <a class="whatsapp-button" id="whatsappButton" href="#" rel="noopener noreferrer" aria-label="Crear usuario por WhatsApp">
+          <span>¡Contactá ya!</span>
+          <img src="imagenes/whatsapp.png" alt="whatsapp"
+               class="whatsapp-icon" width="24" height="24" decoding="async" />
+        </a>
+
+        <p class="subtitle">Sin Límite de retiro<br />Sin Cronogramas<br />Ganás y cobrás a cualquier hora</p>
+        <p class="description">RED OFICIAL</p>
+      </div>
     </div>
-  </div>
 
-<script>
-/************************************************************
- * CONFIG
- ************************************************************/
-const LANDING_CONFIG = {
-  BRAND_NAME: "",
-  MODE: "ads",
-  PROMO: { ENABLED: true, LANDING_TAG: "CT1" },
-  GEO: { ENABLED: true, PROVIDER_URL: "https://ipapi.co/json/", TIMEOUT_MS: 900 }
-};
+    <script>
+      const LANDING_CONFIG = {
+        BRAND_NAME: "GERALDINA",
+        MODE: "ads",
+        PROMO: { ENABLED: true, LANDING_TAG: "CH125" }
+      };
 
-/************************************************************
- * NÚMEROS FIJOS (aleatorio)
- ************************************************************/
-const FIXED_PHONES = [
-  "5493516783675",
-  "5493516768842"
-];
+      const FIXED_PHONES = [ "549" ];
 
-/************************************************************
- * Helpers
- ************************************************************/
-function normalizePhoneDigits(raw){ return String(raw||"").replace(/\D+/g,"").trim(); }
-function generateUUID(){return"xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g,c=>{const r=Math.random()*16|0,v=c==="x"?r:r&0x3|0x8;return v.toString(16)})}
-function getDeviceType(){const ua=navigator.userAgent;if(/mobile/i.test(ua))return"mobile";if(/tablet|ipad|playbook|silk/i.test(ua))return"tablet";return"desktop";}
+      function normalizePhoneDigits(raw){ return String(raw||"").replace(/\D+/g,"").trim(); }
+      function generateUUID(){
+        return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g,c=>{
+          const r=Math.random()*16|0, v=c==="x"?r:r&0x3|0x8;
+          return v.toString(16);
+        });
+      }
+      function getDeviceType(){
+        const ua=navigator.userAgent;
+        if(/mobile/i.test(ua)) return "mobile";
+        if(/tablet|ipad|playbook|silk/i.test(ua)) return "tablet";
+        return "desktop";
+      }
 
-const qs=new URLSearchParams(location.search);
-const getQueryParam=p=>qs.get(p);
-const getCookie=name=>{const m=document.cookie.match(new RegExp("(^| )"+name+"=([^;]+)"));return m&&m[2];};
+      const qs=new URLSearchParams(location.search);
+      const getQueryParam=p=>qs.get(p);
 
-function getFbc(){
-  const c=getCookie("_fbc");
-  if(c){localStorage.setItem("stored_fbc",c);return c;}
-  const s=localStorage.getItem("stored_fbc");if(s)return s;
-  const fbclid=getQueryParam("fbclid");if(!fbclid)return;
-  const fbc=`fb.1.${Date.now()}.${fbclid}`;localStorage.setItem("stored_fbc",fbc);return fbc;
-}
-function getFbp(){
-  const c=getCookie("_fbp");
-  if(c){localStorage.setItem("stored_fbp",c);return c;}
-  const s=localStorage.getItem("stored_fbp");if(s)return s;
-  const n=`fb.1.${Date.now()}.${Math.floor(Math.random()*1e10)}`;
-  localStorage.setItem("stored_fbp",n);return n;
-}
-function getOrCreateExternalId(){
-  let id=localStorage.getItem("external_id");
-  if(!id){id=typeof crypto!=="undefined"&&crypto.randomUUID?crypto.randomUUID():generateUUID();localStorage.setItem("external_id",id);}
-  return id;
-}
+      const getCookie=name=>{
+        const m=document.cookie.match(new RegExp("(^| )"+name+"=([^;]+)"));
+        return m ? m[2] : undefined;
+      };
 
-/************************************************************
- * GEO (no bloquea)
- ************************************************************/
-async function detectarGeo(){
-  if(!LANDING_CONFIG.GEO?.ENABLED) return { city:null, region:null, country:null };
-  const timeoutMs=Number(LANDING_CONFIG.GEO.TIMEOUT_MS||900);
-  try{
-    const ctrl=new AbortController();
-    const t=setTimeout(()=>ctrl.abort(),timeoutMs);
-    const res=await fetch(LANDING_CONFIG.GEO.PROVIDER_URL,{signal:ctrl.signal,cache:"no-store"});
-    clearTimeout(t);
-    if(!res.ok) throw 0;
-    const d=await res.json();
-    return { city:d.city||null, region:d.region||d.region_code||null, country:d.country||d.country_code||null };
-  }catch{
-    return { city:null, region:null, country:null };
-  }
-}
+      (function(){
+        const u=getQueryParam("utm_campaign");
+        if(u) localStorage.setItem("utm_campaign",u);
+      })();
 
-/************************************************************
- * Mensaje
- ************************************************************/
-function buildMensaje(promo_code, botName){
-  const variantes = [
-    n => `Hola! Vi este anuncio, me pasás info?`,
-    n => `Hola! Vi el anuncio, podrías darme más info?`,
-    n => `Buenas! Me contás un poco más del anuncio?`,
-    n => `Hola! Quisiera saber más sobre lo que ofrecen.`,
-    n => `Buenas! Me das más detalles por favor?`,
-    n => `Hola! Estoy interesado, me contás cómo funciona?`,
-    n => `Hola! Vi tu publicación, podrías ampliarme la info?`,
-    n => `Holaaa! Me llamó la atención el anuncio, me contás más?`,
-    n => `Hola! Vi tu publicidad, cómo es para registrarse?`,
-    n => `Buenas! Me das información sobre cómo empezar?`
-  ];
-  const base = variantes[Math.floor(Math.random()*variantes.length)](botName || "Soporte");
-  return promo_code ? `${base} ${promo_code}` : base;
-}
+      function getUTMCampaign(){
+        return getQueryParam("utm_campaign") || localStorage.getItem("utm_campaign") || "ORG";
+      }
 
-/************************************************************
- * Número desde array (aleatorio)
- ************************************************************/
-let __pickedResult = null;
+      // Importante: NO inventamos _fbp/_fbc. Solo leemos si existen.
+      function getFbc(){
+        const c=getCookie("_fbc");
+        if(c){ localStorage.setItem("stored_fbc",c); return c; }
+        const s=localStorage.getItem("stored_fbc");
+        if(s) return s;
 
-function getNumberFromFixed(){
-  const pool = (FIXED_PHONES || [])
-    .map(normalizePhoneDigits)
-    .filter(n => /^\d{8,17}$/.test(n));
-  if(!pool.length) return null;
+        // Si viene fbclid, podemos construir fbc
+        const fbclid=getQueryParam("fbclid");
+        if(!fbclid) return undefined;
+        const fbc="fb.1."+Date.now()+"."+fbclid;
+        localStorage.setItem("stored_fbc",fbc);
+        return fbc;
+      }
 
-  const number = pool[Math.floor(Math.random() * pool.length)];
-  return { number, name: LANDING_CONFIG.BRAND_NAME, meta: { fixed: true } };
-}
+      function getFbp(){
+        const c=getCookie("_fbp");
+        if(c){ localStorage.setItem("stored_fbp",c); return c; }
+        const s=localStorage.getItem("stored_fbp");
+        return s || undefined;
+      }
 
-/************************************************************
- * CLICK: redirect ASAP, tracking after (no bloquea)
- ************************************************************/
-function contactarWhatsApp({ source="main_button" } = {}){
-  if (window.__waInFlight) return;
-  window.__waInFlight = true;
+      function buildMensaje(promo_code){
+        const variantes = [
+          "Hola! Vi este anuncio, me pasás info?",
+          "Hola! Vi el anuncio, podrías darme más info?",
+          "Buenas! Me contás un poco más del anuncio?",
+          "Hola! Quisiera saber más sobre lo que ofrecen.",
+          "Buenas! Me das más detalles por favor?",
+          "Hola! Estoy interesado, me contás cómo funciona?",
+          "Hola! Vi tu publicación, podrías ampliarme la info?",
+          "Holaaa! Me llamó la atención el anuncio, me contás más?",
+          "Hola! Vi tu publicidad, cómo es para registrarse?",
+          "Buenas! Me das información sobre cómo empezar?",
+          "Hola! Cómo hago para empezar?",
+          "Buenas! Me compartís info para sumarme?",
+          "Hola! Tenés más detalles del anuncio?",
+          "Buenas! Quiero más info, gracias.",
+          "Hola! Me interesa, me explicás un poco?",
+          "Buenas! Qué pasos tengo que seguir?",
+          "Hola! Vi el aviso, me das info?",
+          "Buenas! Estoy interesado/a, me pasás detalles?",
+          "Hola! Me contás de qué se trata?",
+          "Buenas! Quiero saber más, me ayudás?"
+        ];
+        const base = variantes[Math.floor(Math.random()*variantes.length)];
+        return promo_code ? (base+" "+promo_code) : base;
+      }
 
-  const picked = __pickedResult || getNumberFromFixed();
-  if(!picked){
-    window.__waInFlight = false;
-    return;
-  }
+      let __pickedResult = null;
 
-  const cleanPhone = normalizePhoneDigits(picked.number);
-  if(!/^\d{8,17}$/.test(cleanPhone)){
-    window.__waInFlight = false;
-    return;
-  }
+      function getNumberFromFixed(){
+        const pool = (FIXED_PHONES || [])
+          .map(normalizePhoneDigits)
+          .filter(n => /^\d{8,17}$/.test(n));
+        if(!pool.length) return null;
 
-  const uuidSegment = generateUUID().replace(/-/g,"").slice(0,12);
-  const promo_code = LANDING_CONFIG.PROMO.ENABLED ? `${LANDING_CONFIG.PROMO.LANDING_TAG}-${uuidSegment}` : "";
-  const mensaje = buildMensaje(promo_code, picked.name);
+        const number = pool[Math.floor(Math.random()*pool.length)];
+        return { number, name: LANDING_CONFIG.BRAND_NAME, meta: { fixed: true } };
+      }
 
-  // Pixel Contact enriquecido (no bloquea)
-  const event_id = generateUUID();
-  try{
-    if(window.fbq){
-      fbq("track","Contact",{
-        em: window.userEmail || undefined,
-        ph: window.userPhone || undefined,
-        fn: window.userFn,
-        ln: window.userLn,
-        external_id: window.externalId,
-        content_name: "Botón WhatsApp",
-        content_category: "LeadGen",
-        source: source,
-        method: "Click",
-        event_source: "LandingPage",
-        utm_campaign: getQueryParam("utm_campaign") || undefined,
-        promo_code: promo_code || undefined,
-        device_type: getDeviceType(),
-        brand: LANDING_CONFIG.BRAND_NAME || undefined
-      },{ eventID: event_id });
-    }
-  }catch{}
+      function sendToBackend(payload){
+        // Mejor para navegación inmediata: sendBeacon si está disponible
+        try{
+          if(navigator.sendBeacon){
+            const blob = new Blob([JSON.stringify(payload)], { type: "application/json" });
+            const ok = navigator.sendBeacon("/api/xz3v2q", blob);
+            if(ok) return;
+          }
+        }catch(e){}
 
-  // Sheet + CAPI: fetch con keepalive (no bloquea redirect)
-  (async ()=>{
-    const geo = await detectarGeo();
-    const payload = {
-      event_name: "Contact",
-      event_id,
-      external_id: getOrCreateExternalId(),
-      event_source_url: location.href,
-      fbp: getFbp(),
-      fbc: getFbc(),
-      email: getQueryParam("em") || getQueryParam("email"),
-      phone: getQueryParam("ph") || getQueryParam("phone"),
-      fn: getQueryParam("fn") || undefined,
-      ln: getQueryParam("ln") || undefined,
-      utm_campaign: getQueryParam("utm_campaign"),
-      telefono_asignado: cleanPhone,
-      device_type: getDeviceType(),
-      promo_code,
-      source,
-      brand: LANDING_CONFIG.BRAND_NAME,
-      mode: LANDING_CONFIG.MODE,
-      geo_city: geo.city || "",
-      geo_region: geo.region || "",
-      geo_country: geo.country || "",
-      api_meta: picked.meta || null
-    };
-    try{
-      fetch("/api/xz3v2q",{
-        method:"POST",
-        headers:{"Content-Type":"application/json"},
-        body:JSON.stringify(payload),
-        keepalive:true
+        // Fallback
+        try{
+          fetch("/api/xz3v2q",{
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(payload),
+            keepalive: true
+          });
+        }catch(e){}
+      }
+
+      function contactarWhatsApp(source){
+        source = source || "main_button";
+        if (window.__waInFlight) return;
+        window.__waInFlight = true;
+
+        const picked = __pickedResult || getNumberFromFixed();
+        if(!picked){ window.__waInFlight = false; return; }
+
+        const cleanPhone = normalizePhoneDigits(picked.number);
+        if(!/^\d{8,17}$/.test(cleanPhone)){ window.__waInFlight = false; return; }
+
+        const uuidSegment = generateUUID().replace(/-/g,"").slice(0,12);
+        const promo_code = LANDING_CONFIG.PROMO.ENABLED ? (LANDING_CONFIG.PROMO.LANDING_TAG+"-"+uuidSegment) : "";
+        const mensaje = buildMensaje(promo_code);
+        const event_id = generateUUID();
+
+        // 1) Pixel Contact (con userData correcto)
+        try{
+          if(window.fbq){
+            fbq("set","userData",{
+              em: window.userEmail || undefined,
+              ph: window.userPhone || undefined,
+              fn: window.userFn,
+              ln: window.userLn,
+              external_id: window.externalId
+            });
+
+            fbq("track","Contact",{
+              content_name: "Botón WhatsApp",
+              content_category: "LeadGen",
+              source: source,
+              method: "Click",
+              utm_campaign: getUTMCampaign(),
+              promo_code: promo_code || undefined,
+              device_type: getDeviceType(),
+              brand: LANDING_CONFIG.BRAND_NAME || undefined
+            },{ eventID: event_id });
+          }
+        }catch(e){}
+
+        // 2) Backend / CAPI proxy (tu endpoint)
+        const payload = {
+          event_name: "Contact",
+          event_id: event_id,
+
+          // mismo external_id que el Pixel (consistente)
+          external_id: window.externalId,
+
+          event_source_url: location.href,
+          fbp: getFbp(),
+          fbc: getFbc(),
+
+          // manda lo mismo que usa el Pixel (query OR localStorage)
+          email: window.userEmail || "",
+          phone: window.userPhone || "",
+
+          fn: window.userFn || undefined,
+          ln: window.userLn || undefined,
+
+          utm_campaign: getUTMCampaign(),
+          telefono_asignado: cleanPhone,
+          device_type: getDeviceType(),
+          promo_code: promo_code,
+          source: source,
+          brand: LANDING_CONFIG.BRAND_NAME,
+          mode: LANDING_CONFIG.MODE,
+
+          geo_city: "",
+          geo_region: "",
+          geo_country: "",
+          api_meta: picked.meta || null
+        };
+
+        sendToBackend(payload);
+
+        // 3) Redirect con delay mínimo para que Pixel tenga chance de salir
+        setTimeout(function(){
+          window.location.assign("https://wa.me/"+cleanPhone+"?text="+encodeURIComponent(mensaje));
+        }, 150);
+      }
+
+      document.addEventListener("DOMContentLoaded",function(){
+        if(window.__fondoActual){
+          const bg = document.querySelector(".background-image");
+          if(bg) bg.style.backgroundImage = "url("+window.__fondoActual+")";
+        }
+
+        __pickedResult = getNumberFromFixed();
+
+        const btn = document.getElementById("whatsappButton");
+        if(btn){
+          btn.addEventListener("click",function(e){
+            e.preventDefault();
+            contactarWhatsApp("main_button");
+          });
+        }
+
+        window.addEventListener("pageshow",function(){ window.__waInFlight=false; });
+        window.addEventListener("visibilitychange",function(){
+          if(document.visibilityState==="visible") window.__waInFlight=false;
+        });
       });
-    }catch{}
-  })();
-
-  // REDIRECT INSTANTÁNEO
-  window.location.assign(`https://wa.me/${cleanPhone}?text=${encodeURIComponent(mensaje)}`);
-}
-
-/************************************************************
- * UI wiring
- ************************************************************/
-document.addEventListener("DOMContentLoaded",()=>{
-  __pickedResult = getNumberFromFixed();
-
-  const btn = document.getElementById("whatsappButton");
-  if(btn){
-    btn.addEventListener("click",(e)=>{
-      e.preventDefault();
-      contactarWhatsApp({ source:"main_button" });
-    });
-  }
-
-  window.addEventListener("pageshow", ()=>{ window.__waInFlight=false; });
-  window.addEventListener("visibilitychange", ()=>{ if(document.visibilityState==="visible") window.__waInFlight=false; });
-});
-</script>
-</body>
+    </script>
+  </body>
 </html>
